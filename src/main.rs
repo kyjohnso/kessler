@@ -19,13 +19,25 @@ fn main() {
         .init_resource::<TleDataCache>()
         .init_resource::<SpatialOctree>()
         .init_resource::<CollisionPairs>()
+        .init_resource::<OptimizedPhysicsData>()
+        .init_resource::<StressTestConfig>()
         .add_systems(Startup, (
             setup_scene,
             initialize_tle_data_system,
         ))
         .add_systems(Update, (
             camera_control_system,
-            physics_system,
+            // Original physics system (disable when using optimized)
+            // physics_system,
+            // Optimized physics systems
+            prepare_optimized_physics_system,
+            optimized_physics_system,
+            apply_optimized_physics_system,
+            optimized_physics_monitor_system,
+            // Stress testing systems
+            stress_test_spawn_system,
+            stress_test_cleanup_system,
+            performance_comparison_system,
             time_control_system,
             update_spatial_octree_system,
             collision_detection_system,
