@@ -1,0 +1,52 @@
+# Rust build artifacts
+/target/
+debug/
+release/
+build/
+
+# Cargo files
+Cargo.lock
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+\#*\#
+.#*
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Rust-specific
+**/*.rs.bk
+*.pdb
+
+# Documentation build
+/doc/
+
+# Profiling and benchmarking
+perf.data*
+flamegraph.svg
