@@ -29,7 +29,7 @@ fn main() {
             camera_control_system,
             time_control_system,
             // Original physics system (disable when using optimized)
-            // physics_system,
+            physics_system,
         ))
         .add_systems(Update, (
             // Optimized physics systems
