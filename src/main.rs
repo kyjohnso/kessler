@@ -37,11 +37,12 @@ fn setup_scene(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    // Create Earth as a simple sphere
+    // Create Earth as a simple sphere (properly scaled in new coordinate system)
+    // Earth radius = 6371 km, so in scaled coordinates it should be 6.371 units
     commands.spawn(PbrBundle {
         mesh: meshes.add(shape::UVSphere::default().into()), // Earth sphere
         material: materials.add(Color::BLUE.into()),
-        transform: Transform::from_scale(Vec3::splat(6.371)), // Earth radius in units
+        transform: Transform::from_scale(Vec3::splat(6.371)), // Earth radius in scaled units
         ..default()
     });
 

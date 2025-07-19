@@ -56,12 +56,15 @@ pub fn satellite_rendering_system(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    satellite_query: Query<(Entity, &OrbitalState, &Satellite), (With<RenderAsSatellite>, Without<Handle<Mesh>>)>,
+    satellites_without_mesh: Query<(Entity, &OrbitalState, &Satellite), (With<RenderAsSatellite>, Without<Handle<Mesh>>)>,
 ) {
-    for (entity, orbital_state, _satellite) in satellite_query.iter() {
-        // Create a small sphere to represent the satellite
+    for (entity, orbital_state, _satellite) in satellites_without_mesh.iter() {
+        // Scale down the position to make satellites visible - divide by 1000 to convert km to render units
+        let scaled_position = orbital_state.position / 1000.0;
+        
+        // Create a visible sphere to represent the satellite
         let mesh = meshes.add(shape::UVSphere {
-            radius: 0.05,
+            radius: 0.05, // Appropriate size for scaled coordinate system
             ..default()
         }.into());
         let material = materials.add(Color::GREEN.into());
@@ -69,7 +72,7 @@ pub fn satellite_rendering_system(
         commands.entity(entity).insert(PbrBundle {
             mesh,
             material,
-            transform: Transform::from_translation(orbital_state.position),
+            transform: Transform::from_translation(scaled_position),
             ..default()
         });
     }
@@ -85,7 +88,7 @@ pub fn debris_rendering_system(
     for (entity, orbital_state, _debris) in debris_query.iter() {
         // Create tiny sphere for debris
         let mesh = meshes.add(shape::UVSphere {
-            radius: 0.02,
+            radius: 2.0,
             ..default()
         }.into());
         let material = materials.add(Color::RED.into());
@@ -104,6 +107,7 @@ pub fn update_positions_system(
     mut query: Query<(&mut Transform, &OrbitalState), (With<Handle<Mesh>>, Changed<OrbitalState>)>,
 ) {
     for (mut transform, orbital_state) in query.iter_mut() {
-        transform.translation = orbital_state.position;
+        // Scale down position to match rendering scale (km to render units)
+        transform.translation = orbital_state.position / 1000.0;
     }
 }
