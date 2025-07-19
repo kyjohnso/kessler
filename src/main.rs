@@ -17,6 +17,8 @@ fn main() {
         .init_resource::<SimulationTime>()
         .init_resource::<EnergyAnalytics>()
         .init_resource::<TleDataCache>()
+        .init_resource::<SpatialOctree>()
+        .init_resource::<CollisionPairs>()
         .add_systems(Startup, (
             setup_scene,
             initialize_tle_data_system,
@@ -25,6 +27,9 @@ fn main() {
             camera_control_system,
             physics_system,
             time_control_system,
+            update_spatial_octree_system,
+            collision_detection_system,
+            debris_generation_system,
             energy_analytics_system,
             satellite_rendering_system,
             debris_rendering_system,
