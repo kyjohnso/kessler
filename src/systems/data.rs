@@ -68,8 +68,8 @@ pub fn process_tle_fetch_system(
         // Try to fetch live data, fallback to expanded test data if it fails
         match try_fetch_live_tle_data() {
             Ok(records) => {
-                // Take only the first 20 satellites for Phase 2
-                let limited_records: Vec<_> = records.into_iter().take(20).collect();
+                // Take the first 100 satellites for enhanced simulation
+                let limited_records: Vec<_> = records.into_iter().take(100).collect();
                 println!("Successfully fetched {} TLE records from Celestrak", limited_records.len());
                 
                 // Store in cache
@@ -86,7 +86,7 @@ pub fn process_tle_fetch_system(
                 eprintln!("Failed to fetch live TLE data: {}", e);
                 println!("Using extended test satellite dataset...");
                 
-                // Use expanded test dataset with 20 realistic satellites
+                // Use expanded test dataset with 100 realistic satellites
                 create_extended_test_dataset(&mut commands, &mut tle_cache);
             }
         }
@@ -121,10 +121,10 @@ fn try_fetch_live_tle_data() -> Result<Vec<TleRecord>, String> {
     }
 }
 
-/// Create extended test dataset with 20 realistic satellites
+/// Create extended test dataset with 100 realistic satellites
 fn create_extended_test_dataset(commands: &mut Commands, tle_cache: &mut ResMut<TleDataCache>) {
     let test_satellites = vec![
-        // Low Earth Orbit satellites
+        // Low Earth Orbit satellites (50 total)
         create_test_satellite("ISS (ZARYA)", 25544, 408.0, 51.6),
         create_test_satellite("HUBBLE SPACE TELESCOPE", 20580, 547.0, 28.5),
         create_test_satellite("TERRA", 25994, 705.0, 98.2),
@@ -135,20 +135,100 @@ fn create_extended_test_dataset(commands: &mut Commands, tle_cache: &mut ResMut<
         create_test_satellite("KEPLER", 36411, 621.0, 89.0),
         create_test_satellite("SENTINEL-1A", 39634, 693.0, 98.2),
         create_test_satellite("LANDSAT-8", 39084, 705.3, 98.2),
+        create_test_satellite("NOAA-19", 33591, 870.0, 98.7),
+        create_test_satellite("METOP-B", 38771, 817.0, 98.7),
+        create_test_satellite("SENTINEL-1B", 41456, 693.0, 98.2),
+        create_test_satellite("SENTINEL-2A", 40697, 786.0, 98.6),
+        create_test_satellite("SENTINEL-2B", 42063, 786.0, 98.6),
+        create_test_satellite("SENTINEL-3A", 41335, 814.5, 98.7),
+        create_test_satellite("SENTINEL-3B", 43437, 814.5, 98.7),
+        create_test_satellite("LANDSAT-7", 25682, 705.0, 98.2),
+        create_test_satellite("SPOT-6", 38755, 694.0, 98.2),
+        create_test_satellite("SPOT-7", 40053, 694.0, 98.2),
+        create_test_satellite("WORLDVIEW-2", 36284, 770.0, 97.2),
+        create_test_satellite("WORLDVIEW-3", 40115, 617.0, 97.9),
+        create_test_satellite("PLEIADES-1A", 38012, 694.0, 98.2),
+        create_test_satellite("PLEIADES-1B", 39019, 694.0, 98.2),
+        create_test_satellite("COSMO-SKYMED 1", 31598, 619.6, 97.9),
+        create_test_satellite("COSMO-SKYMED 2", 32598, 619.6, 97.9),
+        create_test_satellite("RADARSAT-2", 32382, 798.0, 98.6),
+        create_test_satellite("TERRASAR-X", 31698, 514.8, 97.4),
+        create_test_satellite("TANDEM-X", 36605, 514.8, 97.4),
+        create_test_satellite("ICESAT-2", 43613, 496.0, 92.0),
+        create_test_satellite("GRACE-FO 1", 43476, 490.0, 89.0),
+        create_test_satellite("GRACE-FO 2", 43477, 490.0, 89.0),
+        create_test_satellite("SWOT", 52811, 890.6, 77.6),
+        create_test_satellite("ENVISAT", 27386, 790.0, 98.5),
+        create_test_satellite("CRYOSAT-2", 36508, 717.0, 92.0),
+        create_test_satellite("GOCE", 36227, 255.0, 96.7),
+        create_test_satellite("SMOS", 36036, 758.0, 98.4),
+        create_test_satellite("PROBA-2", 36037, 728.0, 98.3),
+        create_test_satellite("SWARM-A", 39451, 460.0, 87.4),
+        create_test_satellite("SWARM-B", 39452, 460.0, 87.4),
+        create_test_satellite("SWARM-C", 39453, 510.0, 88.0),
+        create_test_satellite("AURA", 28376, 705.0, 98.2),
+        create_test_satellite("CALIPSO", 29108, 705.0, 98.2),
+        create_test_satellite("CLOUDSAT", 29107, 705.0, 98.2),
+        create_test_satellite("OCO-2", 40059, 705.0, 98.2),
+        create_test_satellite("SMAP", 40376, 685.0, 98.1),
+        create_test_satellite("JPSS-1 (NOAA-20)", 43013, 824.0, 98.7),
+        create_test_satellite("SUOMI NPP", 37849, 824.0, 98.7),
+        create_test_satellite("DMSP F18", 35951, 850.0, 98.8),
+        create_test_satellite("DMSP F19", 43435, 850.0, 98.8),
         
-        // Medium Earth Orbit satellites
+        // Medium Earth Orbit satellites (30 total)
         create_test_satellite("GPS BIIR-2 (PRN 13)", 24876, 20200.0, 55.0),
         create_test_satellite("GPS BIIR-10 (PRN 12)", 32260, 20200.0, 55.0),
+        create_test_satellite("GPS BIIF-1 (PRN 25)", 38833, 20200.0, 55.0),
+        create_test_satellite("GPS BIIF-2 (PRN 01)", 39166, 20200.0, 55.0),
+        create_test_satellite("GPS BIIF-3 (PRN 06)", 39533, 20200.0, 55.0),
+        create_test_satellite("GPS BIIF-4 (PRN 03)", 39741, 20200.0, 55.0),
+        create_test_satellite("GPS BIIF-5 (PRN 09)", 40105, 20200.0, 55.0),
+        create_test_satellite("GPS BIIF-6 (PRN 26)", 40294, 20200.0, 55.0),
+        create_test_satellite("GPS BIIF-7 (PRN 08)", 40534, 20200.0, 55.0),
+        create_test_satellite("GPS BIIF-8 (PRN 10)", 40730, 20200.0, 55.0),
+        create_test_satellite("GPS BIIF-9 (PRN 32)", 41019, 20200.0, 55.0),
+        create_test_satellite("GPS BIIF-10 (PRN 02)", 41328, 20200.0, 55.0),
         create_test_satellite("GALILEO-FOC FM14", 41549, 23222.0, 56.0),
+        create_test_satellite("GALILEO-FOC FM15", 41550, 23222.0, 56.0),
+        create_test_satellite("GALILEO-FOC FM11", 41859, 23222.0, 56.0),
+        create_test_satellite("GALILEO-FOC FM12", 41860, 23222.0, 56.0),
+        create_test_satellite("GALILEO-FOC FM13", 41861, 23222.0, 56.0),
+        create_test_satellite("GALILEO-FOC FM16", 41862, 23222.0, 56.0),
         create_test_satellite("GLONASS-M 758", 36111, 19130.0, 64.8),
+        create_test_satellite("GLONASS-M 759", 36112, 19130.0, 64.8),
+        create_test_satellite("GLONASS-M 760", 36113, 19130.0, 64.8),
+        create_test_satellite("GLONASS-K1 701", 39155, 19130.0, 64.8),
+        create_test_satellite("GLONASS-K1 702", 41330, 19130.0, 64.8),
         create_test_satellite("BEIDOU-3 M15", 43581, 21528.0, 55.0),
+        create_test_satellite("BEIDOU-3 M16", 43582, 21528.0, 55.0),
+        create_test_satellite("BEIDOU-3 M13", 43107, 21528.0, 55.0),
+        create_test_satellite("BEIDOU-3 M14", 43108, 21528.0, 55.0),
+        create_test_satellite("IRNSS-1A", 39199, 35786.0, 29.0),
+        create_test_satellite("IRNSS-1B", 40269, 35786.0, 29.0),
+        create_test_satellite("QZSS-1", 37158, 35786.0, 43.0),
         
-        // High Earth Orbit / GEO satellites
+        // High Earth Orbit / GEO satellites (20 total)
         create_test_satellite("JASON-2", 33105, 1336.0, 66.0),
         create_test_satellite("JASON-3", 41240, 1336.0, 66.0),
         create_test_satellite("GOES-16", 41866, 35786.0, 0.1),
+        create_test_satellite("GOES-17", 43226, 35786.0, 0.1),
+        create_test_satellite("GOES-18", 51850, 35786.0, 0.1),
+        create_test_satellite("METEOSAT-11", 38552, 35786.0, 0.1),
+        create_test_satellite("METEOSAT-10", 38771, 35786.0, 0.1),
+        create_test_satellite("HIMAWARI-8", 40267, 35786.0, 0.1),
+        create_test_satellite("HIMAWARI-9", 40268, 35786.0, 0.1),
         create_test_satellite("INTELSAT 29E", 41308, 35786.0, 0.1),
+        create_test_satellite("INTELSAT 33E", 42432, 35786.0, 0.1),
+        create_test_satellite("INTELSAT 36", 41748, 35786.0, 0.1),
         create_test_satellite("ASTRA 2E", 38087, 35786.0, 0.1),
+        create_test_satellite("ASTRA 2F", 39020, 35786.0, 0.1),
+        create_test_satellite("ASTRA 2G", 39199, 35786.0, 0.1),
+        create_test_satellite("EUTELSAT 7C", 41855, 35786.0, 0.1),
+        create_test_satellite("EUTELSAT 10A", 40364, 35786.0, 0.1),
+        create_test_satellite("TURKSAT 4A", 39522, 35786.0, 0.1),
+        create_test_satellite("TURKSAT 4B", 40945, 35786.0, 0.1),
+        create_test_satellite("SES-14", 43055, 35786.0, 0.1),
     ];
     
     // Store test TLE records in cache
