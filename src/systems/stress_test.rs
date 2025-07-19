@@ -31,11 +31,11 @@ impl Default for StressTestConfig {
 pub fn stress_test_spawn_system(
     mut commands: Commands,
     mut config: ResMut<StressTestConfig>,
-    keyboard: Res<Input<KeyCode>>,
+    keyboard: Res<ButtonInput<KeyCode>>,
     existing_objects: Query<&StressTestObject>,
 ) {
     // Toggle stress test with 'T' key
-    if keyboard.just_pressed(KeyCode::T) {
+    if keyboard.just_pressed(KeyCode::KeyT) {
         config.enabled = !config.enabled;
         if config.enabled {
             info!("Stress test ENABLED - spawning up to {} objects", config.target_objects);
@@ -45,19 +45,19 @@ pub fn stress_test_spawn_system(
     }
 
     // Adjust target object count
-    if keyboard.just_pressed(KeyCode::Key5) {
+    if keyboard.just_pressed(KeyCode::Digit5) {
         config.target_objects = 500;
         info!("Target objects: {}", config.target_objects);
     }
-    if keyboard.just_pressed(KeyCode::Key6) {
+    if keyboard.just_pressed(KeyCode::Digit6) {
         config.target_objects = 1000;
         info!("Target objects: {}", config.target_objects);
     }
-    if keyboard.just_pressed(KeyCode::Key7) {
+    if keyboard.just_pressed(KeyCode::Digit7) {
         config.target_objects = 2000;
         info!("Target objects: {}", config.target_objects);
     }
-    if keyboard.just_pressed(KeyCode::Key8) {
+    if keyboard.just_pressed(KeyCode::Digit8) {
         config.target_objects = 5000;
         info!("Target objects: {}", config.target_objects);
     }
@@ -176,12 +176,12 @@ fn apply_orbital_rotations(vec: Vec3, inclination: f32, raan: f32, arg_perigee: 
 /// System to clean up stress test objects
 pub fn stress_test_cleanup_system(
     mut commands: Commands,
-    keyboard: Res<Input<KeyCode>>,
+    keyboard: Res<ButtonInput<KeyCode>>,
     stress_objects: Query<Entity, With<StressTestObject>>,
     mut config: ResMut<StressTestConfig>,
 ) {
     // Clean up with 'C' key
-    if keyboard.just_pressed(KeyCode::C) {
+    if keyboard.just_pressed(KeyCode::KeyC) {
         let count = stress_objects.iter().count();
         for entity in stress_objects.iter() {
             commands.entity(entity).despawn();
@@ -198,14 +198,14 @@ pub fn performance_comparison_system(
     time: Res<Time>,
     mut last_report: Local<f32>,
 ) {
-    let current_time = time.elapsed_seconds();
+    let current_time = time.elapsed_secs();
     
     // Report every 2 seconds when stress testing
     if stress_config.enabled && current_time - *last_report > 2.0 {
         *last_report = current_time;
         
-        let fps = 1.0 / time.delta_seconds();
-        let frame_time_ms = time.delta_seconds() * 1000.0;
+        let fps = 1.0 / time.delta_secs();
+        let frame_time_ms = time.delta_secs() * 1000.0;
         
         info!("PERFORMANCE: {} objects @ {:.1} FPS ({:.2}ms/frame)", 
               stress_config.current_objects, fps, frame_time_ms);

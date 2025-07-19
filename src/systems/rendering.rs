@@ -1,17 +1,21 @@
 use bevy::prelude::*;
 use bevy::input::mouse::{MouseMotion, MouseScrollUnit, MouseWheel};
-use bevy::render::mesh::shape;
+use bevy::math::primitives::Sphere;
 use crate::components::*;
 use crate::resources::*;
+
+/// Marker component to track objects that have been rendered
+#[derive(Component)]
+pub struct RenderedObject;
 
 /// System for handling mouse camera controls
 pub fn camera_control_system(
     mut mouse_motion_events: EventReader<MouseMotion>,
     mut mouse_wheel_events: EventReader<MouseWheel>,
-    mouse_buttons: Res<Input<MouseButton>>,
+    mouse_buttons: Res<ButtonInput<MouseButton>>,
     mut camera_query: Query<&mut Transform, With<Camera3d>>,
 ) {
-    let Ok(mut camera_transform) = camera_query.get_single_mut() else {
+    let Ok(mut camera_transform) = camera_query.single_mut() else {
         return;
     };
 
@@ -56,25 +60,24 @@ pub fn satellite_rendering_system(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    satellites_without_mesh: Query<(Entity, &OrbitalState, &Satellite), (With<RenderAsSatellite>, Without<Handle<Mesh>>)>,
+    satellites_without_mesh: Query<(Entity, &OrbitalState, &Satellite), (With<RenderAsSatellite>, Without<RenderedObject>)>,
 ) {
     for (entity, orbital_state, _satellite) in satellites_without_mesh.iter() {
         // Scale down the position to make satellites visible - divide by 1000 to convert km to render units
         let scaled_position = orbital_state.position / 1000.0;
         
         // Create a visible sphere to represent the satellite
-        let mesh = meshes.add(shape::UVSphere {
-            radius: 0.05, // Appropriate size for scaled coordinate system
-            ..default()
-        }.into());
-        let material = materials.add(Color::GREEN.into());
-        
-        commands.entity(entity).insert(PbrBundle {
-            mesh,
-            material,
-            transform: Transform::from_translation(scaled_position),
+        let mesh = meshes.add(Sphere::new(0.05).mesh().ico(5).unwrap());
+        let material = materials.add(StandardMaterial {
+            base_color: Color::srgb(0.0, 1.0, 0.0), // Green color
             ..default()
         });
+        
+        commands.entity(entity)
+            .insert(Mesh3d(mesh))
+            .insert(MeshMaterial3d(material))
+            .insert(Transform::from_translation(scaled_position))
+            .insert(RenderedObject);
     }
 }
 
@@ -83,28 +86,27 @@ pub fn debris_rendering_system(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    debris_query: Query<(Entity, &OrbitalState, &Debris), (With<RenderAsDebris>, Without<Handle<Mesh>>)>,
+    debris_query: Query<(Entity, &OrbitalState, &Debris), (With<RenderAsDebris>, Without<RenderedObject>)>,
 ) {
     for (entity, orbital_state, _debris) in debris_query.iter() {
         // Create tiny sphere for debris
-        let mesh = meshes.add(shape::UVSphere {
-            radius: 2.0,
-            ..default()
-        }.into());
-        let material = materials.add(Color::RED.into());
-        
-        commands.entity(entity).insert(PbrBundle {
-            mesh,
-            material,
-            transform: Transform::from_translation(orbital_state.position),
+        let mesh = meshes.add(Sphere::new(2.0).mesh().ico(3).unwrap());
+        let material = materials.add(StandardMaterial {
+            base_color: Color::srgb(1.0, 0.0, 0.0), // Red color
             ..default()
         });
+        
+        commands.entity(entity)
+            .insert(Mesh3d(mesh))
+            .insert(MeshMaterial3d(material))
+            .insert(Transform::from_translation(orbital_state.position))
+            .insert(RenderedObject);
     }
 }
 
 /// System to update positions of rendered objects
 pub fn update_positions_system(
-    mut query: Query<(&mut Transform, &OrbitalState), (With<Handle<Mesh>>, Changed<OrbitalState>)>,
+    mut query: Query<(&mut Transform, &OrbitalState), (With<RenderedObject>, Changed<OrbitalState>)>,
 ) {
     for (mut transform, orbital_state) in query.iter_mut() {
         // Scale down position to match rendering scale (km to render units)

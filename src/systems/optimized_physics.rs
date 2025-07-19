@@ -211,14 +211,14 @@ pub fn optimized_physics_monitor_system(
     time: Res<Time>,
     mut last_report: Local<f32>,
 ) {
-    let current_time = time.elapsed_seconds();
+    let current_time = time.elapsed_secs();
     
     // Report performance every 5 seconds
     if current_time - *last_report > 5.0 {
         *last_report = current_time;
         
         let object_count = optimized_data.states.len();
-        let fps = 1.0 / time.delta_seconds();
+        let fps = 1.0 / time.delta_secs();
         
         if object_count > 0 {
             info!("Optimized Physics: {} objects @ {:.1} FPS", object_count, fps);

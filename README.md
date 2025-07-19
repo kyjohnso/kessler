@@ -90,8 +90,8 @@ Where `μ = GM = 3.986004418×10¹⁴ m³/s²` (Earth's gravitational parameter)
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/kessler-simulator
-cd kessler-simulator
+git clone https://github.com/kyjohnso/kessler
+cd kessler
 
 # Run the simulation
 cargo run
@@ -145,8 +145,8 @@ cargo run --release
 ### Dependencies
 
 ```toml
-bevy = "0.12"          # Game engine and ECS
-nalgebra = "0.32"      # Linear algebra for orbital mechanics  
+bevy = "0.16.1"        # Game engine and ECS (UPGRADED!)
+nalgebra = "0.32"      # Linear algebra for orbital mechanics
 sgp4 = "2.0"           # Satellite orbital propagation
 reqwest = "0.11"       # HTTP client for TLE data
 serde = "1.0"          # Data serialization

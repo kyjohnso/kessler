@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy::render::mesh::shape;
+use bevy::math::primitives::Sphere;
 
 mod components;
 mod resources;
@@ -27,28 +27,41 @@ fn main() {
         ))
         .add_systems(Update, (
             camera_control_system,
+            time_control_system,
             // Original physics system (disable when using optimized)
             // physics_system,
+        ))
+        .add_systems(Update, (
             // Optimized physics systems
             prepare_optimized_physics_system,
             optimized_physics_system,
             apply_optimized_physics_system,
             optimized_physics_monitor_system,
+        ))
+        .add_systems(Update, (
+            // Collision and debris systems
+            update_spatial_octree_system,
+            collision_detection_system,
+            debris_generation_system,
+        ))
+        .add_systems(Update, (
+            // Rendering and analytics systems
+            satellite_rendering_system,
+            debris_rendering_system,
+            update_positions_system,
+            energy_analytics_system,
+        ))
+        .add_systems(Update, (
+            // Debug and stress test systems
+            debug_orbital_system,
+            debug_analytics_system,
+            process_tle_fetch_system,
+        ))
+        .add_systems(Update, (
             // Stress testing systems
             stress_test_spawn_system,
             stress_test_cleanup_system,
             performance_comparison_system,
-            time_control_system,
-            update_spatial_octree_system,
-            collision_detection_system,
-            debris_generation_system,
-            energy_analytics_system,
-            satellite_rendering_system,
-            debris_rendering_system,
-            update_positions_system,
-            debug_orbital_system,
-            debug_analytics_system,
-            process_tle_fetch_system,
         ))
         .run();
 }
@@ -60,28 +73,31 @@ fn setup_scene(
 ) {
     // Create Earth as a simple sphere (properly scaled in new coordinate system)
     // Earth radius = 6371 km, so in scaled coordinates it should be 6.371 units
-    commands.spawn(PbrBundle {
-        mesh: meshes.add(shape::UVSphere::default().into()), // Earth sphere
-        material: materials.add(Color::BLUE.into()),
-        transform: Transform::from_scale(Vec3::splat(6.371)), // Earth radius in scaled units
-        ..default()
-    });
+    // Create Earth as a simple sphere (properly scaled in new coordinate system)
+    // Earth radius = 6371 km, so in scaled coordinates it should be 6.371 units
+    commands.spawn((
+        MeshMaterial3d(materials.add(StandardMaterial {
+            base_color: Color::srgb(0.0, 0.0, 1.0), // Blue color
+            ..default()
+        })),
+        Mesh3d(meshes.add(Sphere::new(6.371).mesh().ico(5).unwrap())),
+        Transform::default(),
+    ));
 
     // Add a light
-    commands.spawn(PointLightBundle {
-        point_light: PointLight {
+    commands.spawn((
+        PointLight {
             intensity: 1500.0,
             shadows_enabled: true,
             ..default()
         },
-        transform: Transform::from_xyz(4.0, 8.0, 4.0),
-        ..default()
-    });
+        Transform::from_xyz(4.0, 8.0, 4.0),
+    ));
 
     // Add camera
-    commands.spawn(Camera3dBundle {
-        transform: Transform::from_xyz(0.0, 0.0, 15.0)
+    commands.spawn((
+        Camera3d::default(),
+        Transform::from_xyz(0.0, 0.0, 15.0)
             .looking_at(Vec3::ZERO, Vec3::Y),
-        ..default()
-    });
+    ));
 }

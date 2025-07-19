@@ -10,7 +10,7 @@ pub fn physics_system(
     time: Res<Time>,
 ) {
     // Update simulation time
-    sim_time.advance(time.delta_seconds());
+    sim_time.advance(time.delta_secs());
 
     // Don't run physics if paused
     if sim_time.paused {
@@ -75,7 +75,7 @@ pub fn physics_system(
 /// System to handle simulation time controls
 pub fn time_control_system(
     mut sim_time: ResMut<SimulationTime>,
-    keyboard: Res<Input<KeyCode>>,
+    keyboard: Res<ButtonInput<KeyCode>>,
 ) {
     if keyboard.just_pressed(KeyCode::Space) {
         if sim_time.paused {
@@ -85,16 +85,16 @@ pub fn time_control_system(
         }
     }
 
-    if keyboard.just_pressed(KeyCode::Key1) {
+    if keyboard.just_pressed(KeyCode::Digit1) {
         sim_time.set_speed(1.0); // Real time
     }
-    if keyboard.just_pressed(KeyCode::Key2) {
+    if keyboard.just_pressed(KeyCode::Digit2) {
         sim_time.set_speed(60.0); // 1 minute per second
     }
-    if keyboard.just_pressed(KeyCode::Key3) {
+    if keyboard.just_pressed(KeyCode::Digit3) {
         sim_time.set_speed(3600.0); // 1 hour per second
     }
-    if keyboard.just_pressed(KeyCode::Key4) {
+    if keyboard.just_pressed(KeyCode::Digit4) {
         sim_time.set_speed(86400.0); // 1 day per second
     }
 }
