@@ -17,7 +17,10 @@ fn main() {
         .init_resource::<SimulationTime>()
         .init_resource::<EnergyAnalytics>()
         .init_resource::<TleDataCache>()
-        .add_systems(Startup, (setup_scene, initialize_tle_data_system))
+        .add_systems(Startup, (
+            setup_scene,
+            initialize_tle_data_system,
+        ))
         .add_systems(Update, (
             camera_control_system,
             physics_system,
@@ -28,6 +31,7 @@ fn main() {
             update_positions_system,
             debug_orbital_system,
             debug_analytics_system,
+            process_tle_fetch_system,
         ))
         .run();
 }
