@@ -210,8 +210,8 @@ pub fn collision_detection_system(
                 
                 if distance <= combined_radius {
                     collision_pairs.pairs.push((entity, other_entity));
-                    println!("COLLISION DETECTED! Distance: {:.2}km, Combined radius: {:.2}km",
-                            distance, combined_radius);
+                    warn!("Collision detected! Objects {} <-> {} at distance {:.2}km (threshold: {:.2}km)",
+                            entity.index(), other_entity.index(), distance, combined_radius);
                 }
             }
         }
@@ -219,7 +219,7 @@ pub fn collision_detection_system(
     
     // Debug output for collision detection
     if !collision_pairs.pairs.is_empty() {
-        println!("Detected {} collision pairs this frame", collision_pairs.pairs.len());
+        info!("Collision detection: {} pairs identified this frame", collision_pairs.pairs.len());
     }
 }
 
@@ -239,15 +239,13 @@ pub fn debris_generation_system(
             let relative_velocity = orbital2.velocity - orbital1.velocity;
             let collision_energy = 0.5 * (orbital1.mass + orbital2.mass) as f32 * relative_velocity.length_squared();
             
-            println!("COLLISION EVENT:");
-            if let Some(sat1) = sat1 {
-                println!("  Object 1: {} (Mass: {:.0}kg)", sat1.name, orbital1.mass);
-            }
-            if let Some(sat2) = sat2 {
-                println!("  Object 2: {} (Mass: {:.0}kg)", sat2.name, orbital2.mass);
-            }
-            println!("  Collision energy: {:.2e} J", collision_energy);
-            println!("  Location: ({:.1}, {:.1}, {:.1}) km", collision_point.x, collision_point.y, collision_point.z);
+            // Log collision event
+            let obj1_name = sat1.as_ref().map(|s| s.name.as_str()).unwrap_or("Unknown");
+            let obj2_name = sat2.as_ref().map(|s| s.name.as_str()).unwrap_or("Unknown");
+            
+            warn!("COLLISION EVENT: {} ({:.0}kg) <-> {} ({:.0}kg) at ({:.1}, {:.1}, {:.1})km - Energy: {:.2e}J",
+                  obj1_name, orbital1.mass, obj2_name, orbital2.mass,
+                  collision_point.x, collision_point.y, collision_point.z, collision_energy);
             
             // Generate debris based on collision energy
             // NASA standard breakup model: more energy = more debris
@@ -273,8 +271,8 @@ pub fn debris_generation_system(
                     RenderAsDebris,
                 ));
             }
-            
-            println!("  Generated {} debris pieces", debris_pieces);
+
+            info!("Generated {} debris pieces from collision", debris_pieces);
             
             // Remove collided objects (they've been destroyed)
             commands.entity(entity1).despawn();

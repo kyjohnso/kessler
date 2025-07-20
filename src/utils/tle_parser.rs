@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use bevy::prelude::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TleRecord {
@@ -102,7 +103,7 @@ pub fn parse_tle_data(data: &str) -> Result<Vec<TleRecord>, TleParseError> {
             match TleRecord::from_tle_lines(lines[i], lines[i + 1], lines[i + 2]) {
                 Ok(record) => records.push(record),
                 Err(e) => {
-                    eprintln!("Failed to parse TLE for {}: {:?}", lines[i], e);
+                    debug!("Failed to parse TLE record for {}: {:?}", lines[i], e);
                 }
             }
             i += 3;

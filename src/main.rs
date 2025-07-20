@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy::math::primitives::Sphere;
+use bevy::log::LogPlugin;
 
 mod components;
 mod resources;
@@ -12,7 +13,12 @@ use systems::*;
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins.set(LogPlugin {
+            level: bevy::log::Level::INFO,
+            filter: std::env::var("RUST_LOG")
+                .unwrap_or_else(|_| "info,kessler_simulator=info,bevy_render=warn,bevy_ecs=warn".to_string()),
+            ..default()
+        }))
         .init_resource::<Constants>()
         .init_resource::<SimulationTime>()
         .init_resource::<EnergyAnalytics>()

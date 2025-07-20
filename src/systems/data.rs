@@ -17,7 +17,7 @@ pub async fn fetch_tle_data_system() -> Result<Vec<TleRecord>, Box<dyn std::erro
     let tle_text = response.text().await?;
     let records = parse_tle_data(&tle_text)?;
     
-    println!("Fetched {} TLE records", records.len());
+    info!("Successfully fetched {} TLE records from Celestrak", records.len());
     Ok(records)
 }
 
@@ -44,7 +44,7 @@ pub fn initialize_tle_data_system(
 ) {
     // Only fetch if we don't have data yet
     if tle_cache.records.is_empty() {
-        println!("Initializing satellite data...");
+        info!("Initializing satellite data source...");
         commands.spawn_empty().insert(TleFetchTask);
     }
 }
@@ -63,14 +63,14 @@ pub fn process_tle_fetch_system(
         // Remove the fetch task marker
         commands.entity(entity).despawn();
         
-        println!("Attempting to fetch live TLE data from Celestrak...");
+        debug!("Attempting to fetch live TLE data from Celestrak...");
         
         // Try to fetch live data, fallback to expanded test data if it fails
         match try_fetch_live_tle_data() {
             Ok(records) => {
                 // Take the first 100 satellites for enhanced simulation
                 let limited_records: Vec<_> = records.into_iter().take(100).collect();
-                println!("Successfully fetched {} TLE records from Celestrak", limited_records.len());
+                info!("Successfully loaded {} live satellite records from Celestrak", limited_records.len());
                 
                 // Store in cache
                 tle_cache.records = limited_records.clone();
@@ -83,8 +83,7 @@ pub fn process_tle_fetch_system(
                 spawn_satellites_from_records(&mut commands, &limited_records);
             }
             Err(e) => {
-                eprintln!("Failed to fetch live TLE data: {}", e);
-                println!("Using extended test satellite dataset...");
+                warn!("Failed to fetch live TLE data: {} - Using test dataset instead", e);
                 
                 // Use expanded test dataset with 100 realistic satellites
                 create_extended_test_dataset(&mut commands, &mut tle_cache);
@@ -239,7 +238,7 @@ fn create_extended_test_dataset(commands: &mut Commands, tle_cache: &mut ResMut<
     // Spawn satellite entities
     spawn_satellites_from_records(commands, &tle_cache.records);
     
-    println!("Created extended test dataset with {} satellites", test_satellites.len());
+    info!("Created test dataset with {} realistic satellites", test_satellites.len());
 }
 
 /// Spawn satellites from TLE records
@@ -254,13 +253,17 @@ fn spawn_satellites_from_records(commands: &mut Commands, records: &[TleRecord])
                 spawned_count += 1;
             }
             Err(e) => {
-                eprintln!("Failed to create satellite {}: {}", tle_record.name, e);
+                debug!("Failed to create satellite {}: {}", tle_record.name, e);
                 failed_count += 1;
             }
         }
     }
     
-    println!("Spawned {} satellites ({} failed)", spawned_count, failed_count);
+    if failed_count > 0 {
+        warn!("Spawned {} satellites ({} failed to initialize)", spawned_count, failed_count);
+    } else {
+        info!("Successfully spawned {} satellites", spawned_count);
+    }
 }
 
 fn create_test_satellite(name: &str, norad_id: u32, altitude_km: f64, inclination: f64) -> (TleRecord, OrbitalState) {
@@ -369,7 +372,7 @@ pub fn spawn_satellites_from_tle_data(
         return; // Already have satellites spawned
     }
     
-    println!("Creating satellites from TLE data...");
+    debug!("Creating satellites from cached TLE data...");
     let mut spawned_count = 0;
     let mut failed_count = 0;
     
@@ -384,11 +387,15 @@ pub fn spawn_satellites_from_tle_data(
                 spawned_count += 1;
             }
             Err(e) => {
-                eprintln!("Failed to create satellite {}: {}", tle_record.name, e);
+                debug!("Failed to create satellite {}: {}", tle_record.name, e);
                 failed_count += 1;
             }
         }
     }
     
-    println!("Spawned {} satellites from TLE data ({} failed)", spawned_count, failed_count);
+    if failed_count > 0 {
+        warn!("Spawned {} satellites from TLE data ({} failed)", spawned_count, failed_count);
+    } else {
+        info!("Successfully spawned {} satellites from TLE data", spawned_count);
+    }
 }

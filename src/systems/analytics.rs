@@ -40,22 +40,23 @@ pub fn debug_analytics_system(
     sim_time: Res<SimulationTime>,
     mut last_print: Local<f64>,
 ) {
-    // Print analytics every 10 seconds
-    if sim_time.current - *last_print > 10.0 {
+    // Print analytics summary every 60 seconds (reduced frequency)
+    if sim_time.current - *last_print > 60.0 {
         *last_print = sim_time.current;
         
-        println!("=== Energy Analytics ===");
-        println!("Total Objects: {}", analytics.total_objects);
-        println!("Satellites: {}", analytics.total_satellites);
-        println!("Debris: {}", analytics.total_debris);
-        println!("Total System Energy: {:.2e} J", analytics.total_energy);
+        // Basic info always logged at info level
+        info!("System Analytics: {} objects (Satellites: {}, Debris: {}), Total Energy: {:.2e} J",
+              analytics.total_objects, analytics.total_satellites, analytics.total_debris, analytics.total_energy);
         
-        // Print energy by altitude bins
-        for (bin_idx, &altitude) in analytics.altitude_bins.iter().enumerate() {
-            if let Some(avg_energy) = analytics.get_average_energy(bin_idx) {
-                println!("Altitude {:.0}km: Avg Energy {:.2e} J", altitude, avg_energy);
+        // Detailed altitude breakdown only in debug builds at debug level
+        #[cfg(debug_assertions)]
+        {
+            debug!("Energy Analytics by Altitude:");
+            for (bin_idx, &altitude) in analytics.altitude_bins.iter().enumerate() {
+                if let Some(avg_energy) = analytics.get_average_energy(bin_idx) {
+                    debug!("  {:.0}km altitude: {:.2e} J average energy", altitude, avg_energy);
+                }
             }
         }
-        println!("========================");
     }
 }

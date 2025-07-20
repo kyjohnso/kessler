@@ -53,14 +53,14 @@ pub struct StressTestConfig {
 impl Default for StressTestConfig {
     fn default() -> Self {
         Self {
-            target_objects: 1000, // Total satellites
+            target_objects: 600, // Total satellites
             current_objects: 0,
             spawn_rate: 50, // Spawn 50 objects per frame
             enabled: true,  // Enable by default to start with 1000 satellites
             // Distribution: 800 LEO, 100 MEO, 100 GEO
-            target_leo: 800,
-            target_meo: 100,
-            target_geo: 100,
+            target_leo: 600,
+            target_meo: 0,
+            target_geo: 0,
             current_leo: 0,
             current_meo: 0,
             current_geo: 0,
