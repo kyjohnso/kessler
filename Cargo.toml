@@ -8,7 +8,7 @@ name = "kessler"
 path = "src/main.rs"
 
 [dependencies]
-bevy = { version = "0.16.1", features = ["bevy_render", "bevy_core_pipeline"] }
+bevy = { version = "0.16.1", features = ["bevy_render", "bevy_core_pipeline", "jpeg"] }
 reqwest = { version = "0.11", features = ["json"] }
 tokio = { version = "1.0", features = ["rt-multi-thread"] }
 serde = { version = "1.0", features = ["derive"] }

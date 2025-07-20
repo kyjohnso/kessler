@@ -76,18 +76,32 @@ fn setup_scene(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    asset_server: Res<AssetServer>,
 ) {
-    // Create Earth as a simple sphere (properly scaled in new coordinate system)
+    // Create Earth as a sphere with bathymetry texture
     // Earth radius = 6371 km, so in scaled coordinates it should be 6.371 units
-    // Create Earth as a simple sphere (properly scaled in new coordinate system)
-    // Earth radius = 6371 km, so in scaled coordinates it should be 6.371 units
+    let earth_texture = asset_server.load("textures/gebco_08_rev_bath_3600x1800_color.jpg");
+    
     commands.spawn((
         MeshMaterial3d(materials.add(StandardMaterial {
-            base_color: Color::srgb(0.0, 0.0, 1.0), // Blue color
+            base_color_texture: Some(earth_texture.clone()),
+            base_color: Color::srgb(1.0, 1.0, 1.0), // White to let texture show through
+            unlit: false, // Make sure lighting is enabled
             ..default()
         })),
-        Mesh3d(meshes.add(Sphere::new(6.371).mesh().ico(5).unwrap())),
+        Mesh3d(meshes.add(Sphere::new(6.371).mesh().uv(32, 18))),
         Transform::default(),
+    ));
+    
+    // Add a fallback colored sphere in case texture doesn't load
+    commands.spawn((
+        MeshMaterial3d(materials.add(StandardMaterial {
+            base_color: Color::srgb(0.0, 0.5, 1.0), // Fallback blue color
+            unlit: true, // Unlit for debugging
+            ..default()
+        })),
+        Mesh3d(meshes.add(Sphere::new(5.0).mesh().uv(16, 8))), // Smaller sphere for reference
+        Transform::from_xyz(0.0, 0.0, 0.0), // Offset position
     ));
 
     // Add a light

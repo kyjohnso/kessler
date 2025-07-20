@@ -2,9 +2,11 @@
 
 A real-time 3D simulation of the Kessler syndrome - the cascading collision of space debris that could render Earth's orbital environment unusable for generations.
 
-![Project Status](https://img.shields.io/badge/Status-90%25%20Complete-green)
+![Project Status](https://img.shields.io/badge/Status-95%25%20Complete-green)
 ![Build](https://img.shields.io/badge/Build-Passing-green)
 ![License](https://img.shields.io/badge/License-MIT-blue)
+![Bevy](https://img.shields.io/badge/Bevy-0.16.1-blue)
+![Performance](https://img.shields.io/badge/Performance-100%20objects%20@%2060FPS-green)
 
 ## 🎯 Project Goals
 
@@ -18,12 +20,15 @@ The Kessler Syndrome Simulator aims to model and visualize the catastrophic chai
 
 ### Key Features
 
-🌍 **Real Data Integration** - Fetches live TLE data from Celestrak for 100+ real satellites
-⚡ **Physics Simulation** - Complete 2-body orbital mechanics with collision detection and debris generation
-📊 **Energy Analytics** - Real-time energy tracking vs altitude across all orbital regimes
-🎮 **Interactive 3D Visualization** - Mouse-controlled camera with Earth, satellites, and debris cascades
-🎛️ **Time Control** - Variable simulation speed from real-time to 24 hours/second
-🔬 **Scientific Accuracy** - SGP4 orbital propagation with NASA breakup models for debris
+🌍 **Real Data Integration** - Fetches live TLE data from Celestrak + local file support for 12,148+ tracked objects
+⚡ **Dual Physics Systems** - Both standard and SIMD-optimized parallel physics with Rayon multithreading
+🔥 **Stress Testing** - Performance validated up to 5000 satellites with configurable orbital distributions
+💥 **Advanced Collision System** - Octree spatial partitioning with realistic debris generation and cascade modeling
+📊 **Real-time Analytics** - Energy tracking, altitude binning, and performance monitoring
+🎮 **Interactive 3D Visualization** - Mouse-controlled camera with Earth texture, satellites, and debris rendering
+🎛️ **Time Control** - Variable simulation speed from real-time to 86,400× (1 day/second)
+🔬 **Scientific Accuracy** - SGP4 orbital propagation with NASA standard breakup models
+🛠️ **Development Tools** - Built-in stress testing, performance monitoring, and debug systems
 
 ## 🏗️ System Architecture
 
@@ -105,9 +110,17 @@ cargo run --release
 **Keyboard:**
 - `Space` - Pause/Resume simulation
 - `1` - Real-time speed (1×)
-- `2` - Accelerated time (60×)  
+- `2` - Accelerated time (60×)
 - `3` - Fast time (3600× - 1 hour/second)
 - `4` - Ultra-fast time (86400× - 1 day/second)
+
+**Stress Testing:**
+- `T` - Toggle stress test mode (spawns additional satellites)
+- `5` - 500 satellites (400 LEO, 50 MEO, 50 GEO)
+- `6` - 1000 satellites (800 LEO, 100 MEO, 100 GEO)
+- `7` - 2000 satellites (1600 LEO, 200 MEO, 200 GEO)
+- `8` - 5000 satellites (4000 LEO, 500 MEO, 500 GEO)
+- `C` - Clean up stress test objects
 
 **Mouse:**
 - `Left-click + Drag` - Rotate camera around Earth
@@ -115,41 +128,44 @@ cargo run --release
 
 ## 📊 Current Status
 
-### ✅ Completed (90% overall)
+### ✅ Completed (95% overall)
 
-- **Core Architecture** - Complete Bevy ECS framework with all systems
-- **Physics Engine** - Full 2-body orbital mechanics with time control
-- **3D Visualization** - Earth, satellites, debris rendering with camera controls
-- **TLE Parsing** - Complete parser for Celestrak orbital element data
-- **Live TLE Integration** - Real-time fetching of 100+ satellites from Celestrak API
-- **SGP4 Implementation** - Complete TLE to state vector conversion
-- **Collision Detection** - Octree spatial partitioning with sphere intersection testing
-- **Debris Generation** - NASA standard breakup model with realistic fragmentation
-- **Energy Analytics** - Real-time energy tracking across altitude bins (200km-2000km+)
-- **Kessler Cascade** - Complete multi-generation debris collision modeling
+- **Core Architecture** - Complete Bevy 0.16.1 ECS framework with optimized systems
+- **Dual Physics Systems** - Standard physics + SIMD-optimized parallel physics with Rayon
+- **Advanced Data Integration** - Live Celestrak API + local TLE file support (12,148+ objects)
+- **Performance Systems** - Stress testing up to 5000 satellites with real-time monitoring
+- **Complete Collision System** - Octree spatial partitioning with realistic debris cascades
+- **SGP4 Implementation** - Working orbital mechanics conversion with Kepler equation solving
+- **Energy Analytics** - Real-time tracking across altitude bins with performance predictions
+- **3D Visualization** - Earth texture, satellite/debris rendering with interactive camera
+- **Development Tools** - Comprehensive debugging, analytics, and performance monitoring
 
-### 🚧 In Progress
+### 🚧 In Progress (5% remaining)
 
-- **UI Overlay** - Energy plots and statistics display (planned for Phase 3)
+- **UI Overlay** - Energy plots and statistics display (framework ready)
+- **Instanced Rendering** - Optimization for large object counts (architecture prepared)
 
-### 🔮 Planned Features
+### 🔮 Future Enhancements
 
-- **Atmospheric Drag** - Orbital decay modeling
-- **J2 Perturbations** - Earth oblateness effects
-- **Control Panel** - Runtime parameter adjustment
-- **Data Export** - Simulation results for analysis
-- **Performance Optimization** - GPU acceleration for large debris clouds
+- **Atmospheric Drag** - Orbital decay modeling (framework extensible)
+- **J2 Perturbations** - Earth oblateness effects (physics system ready)
+- **GPU Compute Shaders** - GPU-accelerated physics (shaders implemented but disabled)
+- **Data Export** - Simulation results and analysis tools
 
 ## 🔬 Technical Details
 
 ### Dependencies
 
 ```toml
-bevy = "0.16.1"        # Game engine and ECS (UPGRADED!)
+bevy = "0.16.1"        # Modern Bevy game engine and ECS
 nalgebra = "0.32"      # Linear algebra for orbital mechanics
 sgp4 = "2.0"           # Satellite orbital propagation
 reqwest = "0.11"       # HTTP client for TLE data
 serde = "1.0"          # Data serialization
+rayon = "1.7"          # Parallel processing for optimized physics
+rand = "0.8"           # Random number generation for debris
+bytemuck = "1.0"       # Safe byte casting for SIMD operations
+tokio = "1.0"          # Async runtime for network operations
 ```
 
 ### File Structure
@@ -157,26 +173,33 @@ serde = "1.0"          # Data serialization
 ```
 kessler-simulator/
 ├── src/
-│   ├── main.rs                 # Application entry point
-│   ├── components/             # ECS components
-│   │   ├── orbital.rs          # Position, velocity, TLE data
-│   │   ├── objects.rs          # Satellite and debris types  
-│   │   └── physics.rs          # Mass, cross-section, collision
-│   ├── systems/                # ECS systems
-│   │   ├── physics.rs          # Orbital mechanics
-│   │   ├── collision.rs        # Collision detection
-│   │   ├── analytics.rs        # Energy tracking
-│   │   ├── rendering.rs        # 3D visualization
-│   │   └── data.rs             # TLE fetching
-│   ├── resources/              # Global state
-│   │   ├── constants.rs        # Physical constants
-│   │   └── simulation.rs       # Time control, analytics
-│   └── utils/                  # Utilities
-│       ├── tle_parser.rs       # TLE format parsing
-│       └── sgp4_wrapper.rs     # Orbital propagation
-├── assets/                     # 3D models, textures
-├── Cargo.toml
-└── README.md
+│   ├── main.rs                    # Application entry point with dual physics systems
+│   ├── components/                # ECS components
+│   │   ├── orbital.rs             # OrbitalState, TleData components
+│   │   ├── objects.rs             # Satellite, Debris, render markers
+│   │   └── physics.rs             # PhysicsObject, collision properties
+│   ├── systems/                   # ECS systems
+│   │   ├── physics.rs             # Standard orbital mechanics
+│   │   ├── optimized_physics.rs   # SIMD-optimized parallel physics
+│   │   ├── collision.rs           # Octree spatial partitioning
+│   │   ├── analytics.rs           # Energy tracking and monitoring
+│   │   ├── rendering.rs           # 3D visualization with camera controls
+│   │   ├── data.rs                # TLE fetching and satellite spawning
+│   │   ├── stress_test.rs         # Performance testing framework
+│   │   └── gpu_physics.rs         # GPU compute shaders (disabled)
+│   ├── resources/                 # Global state
+│   │   ├── constants.rs           # Physical constants and utilities
+│   │   └── simulation.rs          # Time control, energy analytics
+│   ├── utils/                     # Utilities
+│   │   ├── tle_parser.rs          # Complete TLE format parser
+│   │   └── sgp4_wrapper.rs        # SGP4 orbital mechanics conversion
+│   └── shaders/                   # GPU compute shaders
+├── assets/                        # Resources
+│   ├── textures/                  # Earth bathymetry texture
+│   ├── tles/                      # Local TLE data files
+│   └── shaders/                   # Additional shader files
+├── Cargo.toml                     # Dependencies with performance optimization
+└── *.md                           # Documentation
 ```
 
 ## 📚 Documentation

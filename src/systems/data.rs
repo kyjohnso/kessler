@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 use reqwest;
+use std::fs;
+use std::path::Path;
 use crate::utils::*;
 use crate::components::*;
 use crate::utils::sgp4_wrapper::*;
@@ -63,14 +65,14 @@ pub fn process_tle_fetch_system(
         // Remove the fetch task marker
         commands.entity(entity).despawn();
         
-        debug!("Attempting to fetch live TLE data from Celestrak...");
+        debug!("Attempting to load TLE data (local files first, then Celestrak)...");
         
-        // Try to fetch live data, fallback to expanded test data if it fails
+        // Try to load TLE data (local first, then network), fallback to test data if it fails
         match try_fetch_live_tle_data() {
             Ok(records) => {
                 // Take the first 100 satellites for enhanced simulation
                 let limited_records: Vec<_> = records.into_iter().take(100).collect();
-                info!("Successfully loaded {} live satellite records from Celestrak", limited_records.len());
+                info!("Successfully loaded {} satellite records", limited_records.len());
                 
                 // Store in cache
                 tle_cache.records = limited_records.clone();
@@ -79,11 +81,11 @@ pub fn process_tle_fetch_system(
                     .unwrap()
                     .as_secs_f64();
                 
-                // Spawn satellites from live TLE data
+                // Spawn satellites from TLE data
                 spawn_satellites_from_records(&mut commands, &limited_records);
             }
             Err(e) => {
-                warn!("Failed to fetch live TLE data: {} - Using test dataset instead", e);
+                warn!("Failed to load TLE data: {} - Using test dataset instead", e);
                 
                 // Use expanded test dataset with 100 realistic satellites
                 create_extended_test_dataset(&mut commands, &mut tle_cache);
@@ -92,8 +94,20 @@ pub fn process_tle_fetch_system(
     }
 }
 
-/// Try to fetch live TLE data from Celestrak (blocking call)
+/// Try to load TLE data from local files first, then from Celestrak if no local files exist
 fn try_fetch_live_tle_data() -> Result<Vec<TleRecord>, String> {
+    // First, try to load from local files
+    match try_load_local_tle_data() {
+        Ok(records) => {
+            info!("Successfully loaded {} TLE records from local files", records.len());
+            return Ok(records);
+        }
+        Err(e) => {
+            info!("No local TLE files found or failed to load: {} - Falling back to network", e);
+        }
+    }
+
+    // Fall back to network fetch
     use std::sync::mpsc;
     use std::thread;
     use std::time::Duration;
@@ -118,6 +132,55 @@ fn try_fetch_live_tle_data() -> Result<Vec<TleRecord>, String> {
         Ok(Err(e)) => Err(e),
         Err(_) => Err("Timeout fetching TLE data".to_string()),
     }
+}
+
+/// Try to load TLE data from local files in assets/tles directory
+fn try_load_local_tle_data() -> Result<Vec<TleRecord>, String> {
+    let tle_dir = Path::new("assets/tles");
+    
+    if !tle_dir.exists() {
+        return Err("TLE directory 'assets/tles' does not exist".to_string());
+    }
+    
+    // Read all .tle files in the directory
+    let entries = fs::read_dir(tle_dir)
+        .map_err(|e| format!("Failed to read TLE directory: {}", e))?;
+    
+    let mut all_records = Vec::new();
+    let mut files_processed = 0;
+    
+    for entry in entries {
+        let entry = entry.map_err(|e| format!("Failed to read directory entry: {}", e))?;
+        let path = entry.path();
+        
+        // Only process .tle files
+        if let Some(extension) = path.extension() {
+            if extension == "tle" {
+                info!("Loading TLE data from: {}", path.display());
+                
+                let content = fs::read_to_string(&path)
+                    .map_err(|e| format!("Failed to read TLE file {}: {}", path.display(), e))?;
+                
+                let records = parse_tle_data(&content)
+                    .map_err(|e| format!("Failed to parse TLE file {}: {}", path.display(), e))?;
+                
+                info!("Loaded {} TLE records from {}", records.len(), path.display());
+                all_records.extend(records);
+                files_processed += 1;
+            }
+        }
+    }
+    
+    if files_processed == 0 {
+        return Err("No .tle files found in assets/tles directory".to_string());
+    }
+    
+    if all_records.is_empty() {
+        return Err("No valid TLE records found in local files".to_string());
+    }
+    
+    info!("Successfully loaded {} total TLE records from {} local files", all_records.len(), files_processed);
+    Ok(all_records)
 }
 
 /// Create extended test dataset with 100 realistic satellites
