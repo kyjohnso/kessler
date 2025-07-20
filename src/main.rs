@@ -107,7 +107,7 @@ fn setup_scene(
     // Add a light
     commands.spawn((
         PointLight {
-            intensity: 1500.0,
+            intensity: 15000.0,
             shadows_enabled: true,
             ..default()
         },
