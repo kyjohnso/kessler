@@ -2,7 +2,7 @@
 
 A real-time 3D simulation of the Kessler syndrome - the cascading collision of space debris that could render Earth's orbital environment unusable for generations.
 
-![Project Status](https://img.shields.io/badge/Status-95%25%20Complete-green)
+![Project Status](https://img.shields.io/badge/Status-80%25%20Complete-yellow)
 ![Build](https://img.shields.io/badge/Build-Passing-green)
 ![License](https://img.shields.io/badge/License-MIT-blue)
 ![Bevy](https://img.shields.io/badge/Bevy-0.16.1-blue)
