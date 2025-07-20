@@ -8,6 +8,8 @@ A real-time 3D simulation of the Kessler syndrome - the cascading collision of s
 ![Bevy](https://img.shields.io/badge/Bevy-0.16.1-blue)
 ![Performance](https://img.shields.io/badge/Performance-100%20objects%20@%2060FPS-green)
 
+![kessler](assets/images/kessler_image_00.png)
+
 ## 🎯 Project Goals
 
 The Kessler Syndrome Simulator aims to model and visualize the catastrophic chain reaction of collisions in Earth's orbit, combining real satellite data with advanced physics simulation to answer critical questions:

@@ -27,6 +27,12 @@ fn main() {
         .init_resource::<CollisionPairs>()
         .init_resource::<OptimizedPhysicsData>()
         .init_resource::<StressTestConfig>()
+        // Add ambient lighting for overall scene brightness
+        .insert_resource(AmbientLight {
+            color: Color::srgb(0.8, 0.9, 1.0), // Slightly blue-tinted like space
+            brightness: 0.15, // Soft ambient illumination
+            affects_lightmapped_meshes: true,
+        })
         .add_systems(Startup, (
             setup_scene,
             initialize_tle_data_system,
@@ -104,11 +110,22 @@ fn setup_scene(
         Transform::from_xyz(0.0, 0.0, 0.0), // Offset position
     ));
 
-    // Add a light
+    // Add directional light to simulate the sun
+    commands.spawn((
+        DirectionalLight {
+            illuminance: 100000.0, // Very bright like the sun
+            shadows_enabled: true,
+            ..default()
+        },
+        // Position the sun at an angle to create realistic lighting
+        Transform::from_rotation(Quat::from_euler(EulerRot::XYZ, -0.4, 0.8, 0.0)),
+    ));
+
+    // Keep the original point light but reduce intensity since we have sun + ambient now
     commands.spawn((
         PointLight {
-            intensity: 15000.0,
-            shadows_enabled: true,
+            intensity: 8000.0, // Reduced from 15000.0
+            shadows_enabled: false, // Disable shadows to avoid conflicts with directional light
             ..default()
         },
         Transform::from_xyz(4.0, 8.0, 4.0),
